@@ -1,5 +1,15 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import {
+  disabled,
+  form,
+  FormField,
+  max,
+  maxLength,
+  min,
+  minLength,
+  required
+} from '@angular/forms/signals';
 
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { Toolbar } from 'primeng/toolbar';
@@ -16,15 +26,21 @@ import { Tag } from 'primeng/tag';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { Card } from 'primeng/card';
+import { Message } from 'primeng/message';
 
 import { Filme } from './filme.model';
 
 type ModoDialog = 'incluir' | 'alterar' | 'detalhar';
 
+function novoFilmeVazio(): Filme {
+  return { id: 0, titulo: '', nota: 0, assistido: false };
+}
+
 @Component({
   selector: 'app-root',
   imports: [
     FormsModule,
+    FormField,
     Toolbar,
     Button,
     TableModule,
@@ -38,7 +54,8 @@ type ModoDialog = 'incluir' | 'alterar' | 'detalhar';
     Tag,
     IconField,
     InputIcon,
-    Card
+    Card,
+    Message
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'
@@ -60,7 +77,23 @@ export class App {
 
   protected readonly dialogVisivel = signal(false);
   protected readonly modoDialog = signal<ModoDialog>('incluir');
-  protected readonly filmeEditavel = signal<Filme>(this.novoFilmeVazio());
+
+  protected readonly filmeModel = signal<Filme>(novoFilmeVazio());
+
+  protected readonly filmeForm = form(this.filmeModel, (f) => {
+    disabled(f, () => this.modoDialog() === 'detalhar');
+    required(f.titulo, { message: 'O título é obrigatório.' });
+    minLength(f.titulo, 2, { message: 'O título deve ter no mínimo 2 caracteres.' });
+    maxLength(f.titulo, 100, { message: 'O título deve ter no máximo 100 caracteres.' });
+    min(f.nota, 0, { message: 'A nota mínima é 0.' });
+    max(f.nota, 10, { message: 'A nota máxima é 10.' });
+  });
+
+  protected readonly filmesFiltrados = computed(() => {
+    const termo = this.termoBusca().toLowerCase().trim();
+    if (!termo) return this.filmes();
+    return this.filmes().filter((f) => f.titulo.toLowerCase().includes(termo));
+  });
 
   protected readonly totalFilmes = computed(() => this.filmes().length);
   protected readonly totalAssistidos = computed(
@@ -88,19 +121,19 @@ export class App {
 
   abrirIncluir(): void {
     this.modoDialog.set('incluir');
-    this.filmeEditavel.set(this.novoFilmeVazio());
+    this.filmeModel.set(novoFilmeVazio());
     this.dialogVisivel.set(true);
   }
 
   abrirAlterar(filme: Filme): void {
     this.modoDialog.set('alterar');
-    this.filmeEditavel.set({ ...filme });
+    this.filmeModel.set({ ...filme });
     this.dialogVisivel.set(true);
   }
 
   abrirDetalhar(filme: Filme): void {
     this.modoDialog.set('detalhar');
-    this.filmeEditavel.set({ ...filme });
+    this.filmeModel.set({ ...filme });
     this.dialogVisivel.set(true);
   }
 
@@ -117,16 +150,11 @@ export class App {
   }
 
   salvar(): void {
-    const filme = this.filmeEditavel();
-
-    if (!filme.titulo.trim()) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Campo obrigatório',
-        detail: 'Informe o título do filme.'
-      });
+    if (!this.filmeForm().valid()) {
       return;
     }
+
+    const filme = this.filmeModel();
 
     if (this.modoDialog() === 'incluir') {
       const novo: Filme = { ...filme, id: this.proximoId() };
@@ -166,13 +194,5 @@ export class App {
   private proximoId(): number {
     const ids = this.filmes().map((f) => f.id);
     return ids.length === 0 ? 1 : Math.max(...ids) + 1;
-  }
-
-  private novoFilmeVazio(): Filme {
-    return { id: 0, titulo: '', nota: 0, assistido: false };
-  }
-
-  protected atualizarCampo<K extends keyof Filme>(campo: K, valor: Filme[K]): void {
-    this.filmeEditavel.update((f) => ({ ...f, [campo]: valor }));
   }
 }

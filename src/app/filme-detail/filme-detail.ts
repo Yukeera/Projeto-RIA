@@ -1,4 +1,4 @@
-import { Component, input, model } from '@angular/core';
+import { Component, computed, inject, input, model } from '@angular/core';
 
 import { Dialog } from 'primeng/dialog';
 import { Button } from 'primeng/button';
@@ -6,7 +6,7 @@ import { Rating } from 'primeng/rating';
 import { Tag } from 'primeng/tag';
 import { FormsModule } from '@angular/forms';
 
-import { Filme } from '../filme.model';
+import { FilmeService } from '../filme.service';
 
 @Component({
   selector: 'app-filme-detail',
@@ -14,8 +14,12 @@ import { Filme } from '../filme.model';
   templateUrl: './filme-detail.html'
 })
 export class FilmeDetailComponent {
+  private readonly filmeService = inject(FilmeService);
+
   readonly visivel = model.required<boolean>();
-  readonly filme = input.required<Filme>();
+  readonly filmeId = input.required<number>();
+
+  protected readonly filme = computed(() => this.filmeService.buscarPorId(this.filmeId()));
 
   protected fechar(): void {
     this.visivel.set(false);

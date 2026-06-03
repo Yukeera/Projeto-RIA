@@ -2,25 +2,19 @@
 <p-confirmDialog />
 
 <app-filme-list
-  [filmes]="filmes()"
   (incluir)="onIncluir()"
   (detalhar)="onDetalhar($event)"
   (alterar)="onAlterar($event)"
-  (remover)="onRemover($event)"
 />
 
-<app-filme-insert
-  [(visivel)]="dialogIncluirVisivel"
-  (salvo)="onFilmeIncluido($event)"
-/>
+<app-filme-insert [(visivel)]="dialogIncluirVisivel" />
 
 <app-filme-update
   [(visivel)]="dialogAlterarVisivel"
-  [filme]="filmeSelecionado()"
-  (salvo)="onFilmeAlterado($event)"
+  [filmeId]="filmeSelecionadoId()"
 />
 
 <app-filme-detail
   [(visivel)]="dialogDetalharVisivel"
-  [filme]="filmeSelecionado()"
+  [filmeId]="filmeSelecionadoId()"
 />

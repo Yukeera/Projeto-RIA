@@ -1,4 +1,4 @@
-import { Component, effect, model, output, signal } from '@angular/core';
+import { Component, effect, inject, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   form,
@@ -17,8 +17,10 @@ import { InputNumber } from 'primeng/inputnumber';
 import { Checkbox } from 'primeng/checkbox';
 import { Rating } from 'primeng/rating';
 import { Message } from 'primeng/message';
+import { MessageService } from 'primeng/api';
 
 import { Filme } from '../filme.model';
+import { FilmeService } from '../filme.service';
 
 function novoFilmeVazio(): Filme {
   return { id: 0, titulo: '', nota: 0, assistido: false };
@@ -40,8 +42,10 @@ function novoFilmeVazio(): Filme {
   templateUrl: './filme-insert.html'
 })
 export class FilmeInsertComponent {
+  private readonly filmeService = inject(FilmeService);
+  private readonly messageService = inject(MessageService);
+
   readonly visivel = model.required<boolean>();
-  readonly salvo = output<Filme>();
 
   protected readonly filmeModel = signal<Filme>(novoFilmeVazio());
 
@@ -61,7 +65,13 @@ export class FilmeInsertComponent {
 
   protected salvar(): void {
     if (!this.filmeForm().valid()) return;
-    this.salvo.emit({ ...this.filmeModel() });
+
+    const novo = this.filmeService.inserir(this.filmeModel());
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Filme incluído',
+      detail: `"${novo.titulo}" foi adicionado à watchlist.`
+    });
     this.visivel.set(false);
   }
 

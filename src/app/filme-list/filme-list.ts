@@ -1,4 +1,4 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 
 import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
@@ -9,9 +9,11 @@ import { Tag } from 'primeng/tag';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { Card } from 'primeng/card';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
 
 import { Filme } from '../filme.model';
+import { FilmeService } from '../filme.service';
 
 @Component({
   selector: 'app-filme-list',
@@ -30,12 +32,15 @@ import { Filme } from '../filme.model';
   templateUrl: './filme-list.html'
 })
 export class FilmeListComponent {
-  readonly filmes = input.required<Filme[]>();
+  private readonly filmeService = inject(FilmeService);
+  private readonly confirmationService = inject(ConfirmationService);
+  private readonly messageService = inject(MessageService);
 
   readonly incluir = output<void>();
   readonly detalhar = output<Filme>();
   readonly alterar = output<Filme>();
-  readonly remover = output<Filme>();
+
+  protected readonly filmes = this.filmeService.filmes;
 
   protected readonly termoBusca = signal('');
 
@@ -55,4 +60,25 @@ export class FilmeListComponent {
     const soma = lista.reduce((acc, f) => acc + f.nota, 0);
     return Math.round((soma / lista.length) * 10) / 10;
   });
+
+  protected confirmarRemocao(filme: Filme): void {
+    this.confirmationService.confirm({
+      header: 'Remover filme',
+      message: `Tem certeza que deseja remover "${filme.titulo}"?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Remover',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => this.remover(filme)
+    });
+  }
+
+  private remover(filme: Filme): void {
+    this.filmeService.remover(filme.id);
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Filme removido',
+      detail: `"${filme.titulo}" foi removido da watchlist.`
+    });
+  }
 }

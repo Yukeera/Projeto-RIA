@@ -1,0 +1,144 @@
+<div class="min-h-screen bg-surface-100 font-sans text-surface-800">
+  <div class="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10">
+    <header
+      class="rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-pink-500 p-8 text-white shadow-xl shadow-indigo-500/30"
+    >
+      <div class="flex items-center gap-4">
+        <i class="pi pi-video rounded-xl bg-white/15 p-4 text-4xl"></i>
+        <div>
+          <h1 class="m-0 text-3xl font-semibold tracking-tight">Watchlist de Filmes</h1>
+          <p class="mt-1 text-base opacity-90">
+            Gerencie os filmes que você quer assistir ou já assistiu.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <section class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <p-card>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-medium uppercase tracking-wider text-surface-500">
+            Total de filmes
+          </span>
+          <span class="text-3xl font-bold text-surface-900">{{ totalFilmes() }}</span>
+        </div>
+      </p-card>
+      <p-card>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-medium uppercase tracking-wider text-surface-500">
+            Já assistidos
+          </span>
+          <span class="text-3xl font-bold text-surface-900">{{ totalAssistidos() }}</span>
+        </div>
+      </p-card>
+      <p-card>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-medium uppercase tracking-wider text-surface-500">
+            Nota média
+          </span>
+          <span class="text-3xl font-bold text-surface-900">{{ mediaNotas() }}</span>
+        </div>
+      </p-card>
+    </section>
+
+    <p-toolbar styleClass="rounded-xl">
+      <ng-template #start>
+        <p-button
+          label="Novo filme"
+          icon="pi pi-plus"
+          severity="primary"
+          (onClick)="incluir.emit()"
+        />
+      </ng-template>
+      <ng-template #end>
+        <p-iconField iconPosition="left">
+          <p-inputIcon class="pi pi-search" />
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar por título..."
+            [value]="termoBusca()"
+            (input)="termoBusca.set($any($event.target).value)"
+          />
+        </p-iconField>
+      </ng-template>
+    </p-toolbar>
+
+    <p-table
+      [value]="filmesFiltrados()"
+      [paginator]="true"
+      [rows]="5"
+      [rowsPerPageOptions]="[5, 10, 20]"
+      [stripedRows]="true"
+      styleClass="rounded-xl overflow-hidden shadow-md"
+      tableStyleClass="min-w-[50rem]"
+      dataKey="id"
+    >
+      <ng-template #header>
+        <tr>
+          <th class="w-16">#</th>
+          <th pSortableColumn="titulo">Título <p-sortIcon field="titulo" /></th>
+          <th pSortableColumn="nota" class="w-56">Nota <p-sortIcon field="nota" /></th>
+          <th class="w-36">Assistido</th>
+          <th class="w-48 text-right">Ações</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-filme>
+        <tr>
+          <td>{{ filme.id }}</td>
+          <td class="font-medium">{{ filme.titulo }}</td>
+          <td>
+            <p-rating [(ngModel)]="filme.nota" [readonly]="true" [stars]="10" />
+          </td>
+          <td>
+            @if (filme.assistido) {
+              <p-tag severity="success" value="Sim" icon="pi pi-check" />
+            } @else {
+              <p-tag severity="warn" value="Não" icon="pi pi-clock" />
+            }
+          </td>
+          <td>
+            <div class="flex justify-end gap-1">
+              <p-button
+                icon="pi pi-eye"
+                severity="info"
+                [rounded]="true"
+                [text]="true"
+                (onClick)="detalhar.emit(filme)"
+                pTooltip="Detalhar"
+              />
+              <p-button
+                icon="pi pi-pencil"
+                severity="warn"
+                [rounded]="true"
+                [text]="true"
+                (onClick)="alterar.emit(filme)"
+                pTooltip="Alterar"
+              />
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                [rounded]="true"
+                [text]="true"
+                (onClick)="remover.emit(filme)"
+                pTooltip="Remover"
+              />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5">
+            <div class="flex flex-col items-center gap-2 p-8 text-surface-500">
+              <i class="pi pi-inbox text-3xl opacity-60"></i>
+              <span>Nenhum filme cadastrado.</span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

@@ -1,4 +1,5 @@
-import { Component, effect, inject, model, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   form,
@@ -10,7 +11,7 @@ import {
   required
 } from '@angular/forms/signals';
 
-import { Dialog } from 'primeng/dialog';
+import { Card } from 'primeng/card';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
@@ -21,17 +22,14 @@ import { MessageService } from 'primeng/api';
 
 import { Filme } from '../filme.model';
 import { FilmeService } from '../filme.service';
-
-function novoFilmeVazio(): Filme {
-  return { id: 0, titulo: '', nota: 0, assistido: false };
-}
+import { novoFilmeVazio } from '../filme.utils';
 
 @Component({
   selector: 'app-filme-insert',
   imports: [
     FormsModule,
     FormField,
-    Dialog,
+    Card,
     Button,
     InputText,
     InputNumber,
@@ -44,8 +42,7 @@ function novoFilmeVazio(): Filme {
 export class FilmeInsertComponent {
   private readonly filmeService = inject(FilmeService);
   private readonly messageService = inject(MessageService);
-
-  readonly visivel = model.required<boolean>();
+  private readonly router = inject(Router);
 
   protected readonly filmeModel = signal<Filme>(novoFilmeVazio());
 
@@ -57,12 +54,6 @@ export class FilmeInsertComponent {
     max(f.nota, 10, { message: 'A nota máxima é 10.' });
   });
 
-  private readonly resetOnOpen = effect(() => {
-    if (this.visivel()) {
-      this.filmeForm().reset(novoFilmeVazio());
-    }
-  });
-
   protected salvar(): void {
     if (!this.filmeForm().valid()) return;
 
@@ -72,10 +63,10 @@ export class FilmeInsertComponent {
       summary: 'Filme incluído',
       detail: `"${novo.titulo}" foi adicionado à watchlist.`
     });
-    this.visivel.set(false);
+    this.voltarParaLista();
   }
 
-  protected fechar(): void {
-    this.visivel.set(false);
+  protected voltarParaLista(): void {
+    this.router.navigate(['/filmes/listar']);
   }
 }

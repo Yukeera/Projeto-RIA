@@ -1,4 +1,5 @@
-import { Component, computed, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
@@ -35,10 +36,7 @@ export class FilmeListComponent {
   private readonly filmeService = inject(FilmeService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
-
-  readonly incluir = output<void>();
-  readonly detalhar = output<Filme>();
-  readonly alterar = output<Filme>();
+  private readonly router = inject(Router);
 
   protected readonly filmes = this.filmeService.filmes;
 
@@ -60,6 +58,18 @@ export class FilmeListComponent {
     const soma = lista.reduce((acc, f) => acc + f.nota, 0);
     return Math.round((soma / lista.length) * 10) / 10;
   });
+
+  protected irParaInclusao(): void {
+    this.router.navigate(['/filmes/incluir']);
+  }
+
+  protected irParaDetalhe(filme: Filme): void {
+    this.router.navigate(['/filmes/detalhar'], { state: { filme } });
+  }
+
+  protected irParaAlteracao(filme: Filme): void {
+    this.router.navigate(['/filmes/editar'], { state: { filme } });
+  }
 
   protected confirmarRemocao(filme: Filme): void {
     this.confirmationService.confirm({

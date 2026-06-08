@@ -1,4 +1,5 @@
-import { Component, computed, effect, inject, input, model, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   form,
@@ -10,7 +11,7 @@ import {
   required
 } from '@angular/forms/signals';
 
-import { Dialog } from 'primeng/dialog';
+import { Card } from 'primeng/card';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
@@ -21,13 +22,14 @@ import { MessageService } from 'primeng/api';
 
 import { Filme } from '../filme.model';
 import { FilmeService } from '../filme.service';
+import { filmeFromHistory } from '../filme.utils';
 
 @Component({
   selector: 'app-filme-update',
   imports: [
     FormsModule,
     FormField,
-    Dialog,
+    Card,
     Button,
     InputText,
     InputNumber,
@@ -40,20 +42,9 @@ import { FilmeService } from '../filme.service';
 export class FilmeUpdateComponent {
   private readonly filmeService = inject(FilmeService);
   private readonly messageService = inject(MessageService);
+  private readonly router = inject(Router);
 
-  readonly visivel = model.required<boolean>();
-  readonly filmeId = input.required<number>();
-
-  protected readonly filmeOriginal = computed(() =>
-    this.filmeService.buscarPorId(this.filmeId())
-  );
-
-  protected readonly filmeModel = signal<Filme>({
-    id: 0,
-    titulo: '',
-    nota: 0,
-    assistido: false
-  });
+  protected readonly filmeModel = signal<Filme>(filmeFromHistory());
 
   protected readonly filmeForm = form(this.filmeModel, (f) => {
     required(f.titulo, { message: 'O título é obrigatório.' });
@@ -61,15 +52,6 @@ export class FilmeUpdateComponent {
     maxLength(f.titulo, 100, { message: 'O título deve ter no máximo 100 caracteres.' });
     min(f.nota, 0, { message: 'A nota mínima é 0.' });
     max(f.nota, 10, { message: 'A nota máxima é 10.' });
-  });
-
-  private readonly syncOnOpen = effect(() => {
-    if (this.visivel()) {
-      const original = this.filmeOriginal();
-      if (original) {
-        this.filmeForm().reset({ ...original });
-      }
-    }
   });
 
   protected salvar(): void {
@@ -82,10 +64,10 @@ export class FilmeUpdateComponent {
       summary: 'Filme alterado',
       detail: `As alterações em "${alterado.titulo}" foram salvas.`
     });
-    this.visivel.set(false);
+    this.voltarParaLista();
   }
 
-  protected fechar(): void {
-    this.visivel.set(false);
+  protected voltarParaLista(): void {
+    this.router.navigate(['/filmes/listar']);
   }
 }

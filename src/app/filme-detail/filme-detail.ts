@@ -1,27 +1,30 @@
-import { Component, computed, inject, input, model } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
-import { Dialog } from 'primeng/dialog';
+import { Card } from 'primeng/card';
 import { Button } from 'primeng/button';
 import { Rating } from 'primeng/rating';
 import { Tag } from 'primeng/tag';
-import { FormsModule } from '@angular/forms';
 
-import { FilmeService } from '../filme.service';
+import { Filme } from '../filme.model';
+import { filmeFromHistory } from '../filme.utils';
 
 @Component({
   selector: 'app-filme-detail',
-  imports: [FormsModule, Dialog, Button, Rating, Tag],
+  imports: [FormsModule, Card, Button, Rating, Tag],
   templateUrl: './filme-detail.html'
 })
 export class FilmeDetailComponent {
-  private readonly filmeService = inject(FilmeService);
+  private readonly router = inject(Router);
 
-  readonly visivel = model.required<boolean>();
-  readonly filmeId = input.required<number>();
+  protected readonly filme: Filme = filmeFromHistory();
 
-  protected readonly filme = computed(() => this.filmeService.buscarPorId(this.filmeId()));
+  protected voltarParaLista(): void {
+    this.router.navigate(['/filmes/listar']);
+  }
 
-  protected fechar(): void {
-    this.visivel.set(false);
+  protected irParaAlteracao(): void {
+    this.router.navigate(['/filmes/editar'], { state: { filme: this.filme } });
   }
 }

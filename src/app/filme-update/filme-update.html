@@ -1,12 +1,17 @@
-<p-dialog
-  [(visible)]="visivel"
-  [modal]="true"
-  [closable]="true"
-  [draggable]="false"
-  [resizable]="false"
-  header="Alterar filme"
-  styleClass="w-[32rem]"
->
+<p-card>
+  <ng-template #title>
+    <div class="flex items-center justify-between gap-3">
+      <span class="text-lg font-semibold">Alterar filme</span>
+      <p-button
+        icon="pi pi-arrow-left"
+        label="Voltar"
+        severity="secondary"
+        [text]="true"
+        (onClick)="voltarParaLista()"
+      />
+    </div>
+  </ng-template>
+
   <div class="flex flex-col gap-5 pt-2">
     <div class="flex flex-col gap-2">
       <label for="titulo-update" class="text-sm font-medium text-surface-700">Título</label>
@@ -62,21 +67,21 @@
         Já assisti este filme
       </label>
     </div>
-  </div>
 
-  <ng-template #footer>
-    <p-button
-      label="Cancelar"
-      icon="pi pi-times"
-      severity="secondary"
-      [text]="true"
-      (onClick)="fechar()"
-    />
-    <p-button
-      label="Salvar"
-      icon="pi pi-check"
-      [disabled]="!filmeForm().valid()"
-      (onClick)="salvar()"
-    />
-  </ng-template>
-</p-dialog>
+    <div class="mt-2 flex justify-end gap-2">
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        [text]="true"
+        (onClick)="voltarParaLista()"
+      />
+      <p-button
+        label="Salvar"
+        icon="pi pi-check"
+        [disabled]="!filmeForm().valid()"
+        (onClick)="salvar()"
+      />
+    </div>
+  </div>
+</p-card>

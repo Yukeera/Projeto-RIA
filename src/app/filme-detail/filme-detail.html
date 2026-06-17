@@ -12,46 +12,53 @@
     </div>
   </ng-template>
 
-  <div class="flex flex-col gap-5 pt-2">
-    <div class="flex flex-col gap-1">
-      <span class="text-xs font-medium uppercase tracking-wider text-surface-500">Código</span>
-      <span class="text-base text-surface-900">#{{ filme.id }}</span>
-    </div>
+  @if (filme(); as f) {
+    <div class="flex flex-col gap-5 pt-2">
+      <div class="flex flex-col gap-1">
+        <span class="text-xs font-medium uppercase tracking-wider text-surface-500">Código</span>
+        <span class="text-base text-surface-900">#{{ f.id }}</span>
+      </div>
 
-    <div class="flex flex-col gap-1">
-      <span class="text-xs font-medium uppercase tracking-wider text-surface-500">Título</span>
-      <span class="text-lg font-semibold text-surface-900">{{ filme.titulo }}</span>
-    </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs font-medium uppercase tracking-wider text-surface-500">Título</span>
+        <span class="text-lg font-semibold text-surface-900">{{ f.titulo }}</span>
+      </div>
 
-    <div class="flex flex-col gap-2">
-      <span class="text-xs font-medium uppercase tracking-wider text-surface-500">Nota</span>
-      <div class="flex items-center gap-3">
-        <p-rating [ngModel]="filme.nota" [readonly]="true" [stars]="10" />
-        <span class="text-base font-medium text-surface-700">{{ filme.nota }} / 10</span>
+      <div class="flex flex-col gap-2">
+        <span class="text-xs font-medium uppercase tracking-wider text-surface-500">Nota</span>
+        <div class="flex items-center gap-3">
+          <p-rating [ngModel]="f.nota" [readonly]="true" [stars]="10" />
+          <span class="text-base font-medium text-surface-700">{{ f.nota }} / 10</span>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <span class="text-xs font-medium uppercase tracking-wider text-surface-500">Status</span>
+        @if (f.assistido) {
+          <p-tag severity="success" value="Já assistido" icon="pi pi-check" />
+        } @else {
+          <p-tag severity="warn" value="Ainda não assistido" icon="pi pi-clock" />
+        }
+      </div>
+
+      <div class="mt-2 flex justify-end gap-2">
+        <p-button
+          label="Voltar à lista"
+          icon="pi pi-list"
+          severity="secondary"
+          (onClick)="voltarParaLista()"
+        />
+        <p-button
+          label="Alterar"
+          icon="pi pi-pencil"
+          (onClick)="irParaAlteracao()"
+        />
       </div>
     </div>
-
-    <div class="flex flex-col gap-2">
-      <span class="text-xs font-medium uppercase tracking-wider text-surface-500">Status</span>
-      @if (filme.assistido) {
-        <p-tag severity="success" value="Já assistido" icon="pi pi-check" />
-      } @else {
-        <p-tag severity="warn" value="Ainda não assistido" icon="pi pi-clock" />
-      }
+  } @else {
+    <div class="flex flex-col items-center gap-2 p-8 text-surface-500">
+      <i class="pi pi-spin pi-spinner text-3xl opacity-60"></i>
+      <span>Carregando detalhes...</span>
     </div>
-
-    <div class="mt-2 flex justify-end gap-2">
-      <p-button
-        label="Voltar à lista"
-        icon="pi pi-list"
-        severity="secondary"
-        (onClick)="voltarParaLista()"
-      />
-      <p-button
-        label="Alterar"
-        icon="pi pi-pencil"
-        (onClick)="irParaAlteracao()"
-      />
-    </div>
-  </div>
+  }
 </p-card>

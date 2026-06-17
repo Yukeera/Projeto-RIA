@@ -1,5 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { catchError, of, tap } from 'rxjs';
 
 import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
@@ -32,13 +33,14 @@ import { FilmeService } from '../filme.service';
   ],
   templateUrl: './filme-list.html'
 })
-export class FilmeListComponent {
+export class FilmeListComponent implements OnInit {
   private readonly filmeService = inject(FilmeService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
   private readonly router = inject(Router);
 
-  protected readonly filmes = this.filmeService.filmes;
+  protected readonly filmes = signal<Filme[]>([]);
+  protected readonly carregando = signal(false);
 
   protected readonly termoBusca = signal('');
 
@@ -58,6 +60,10 @@ export class FilmeListComponent {
     const soma = lista.reduce((acc, f) => acc + f.nota, 0);
     return Math.round((soma / lista.length) * 10) / 10;
   });
+
+  ngOnInit(): void {
+    this.carregar();
+  }
 
   protected irParaInclusao(): void {
     this.router.navigate(['/filmes/incluir']);
@@ -83,12 +89,47 @@ export class FilmeListComponent {
     });
   }
 
+  private carregar(): void {
+    this.carregando.set(true);
+    this.filmeService
+      .listar()
+      .pipe(
+        catchError(() => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro ao listar',
+            detail: 'Não foi possível carregar os filmes do servidor.'
+          });
+          return of([] as Filme[]);
+        })
+      )
+      .subscribe((filmes) => {
+        this.filmes.set(filmes);
+        this.carregando.set(false);
+      });
+  }
+
   private remover(filme: Filme): void {
-    this.filmeService.remover(filme.id);
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Filme removido',
-      detail: `"${filme.titulo}" foi removido da watchlist.`
-    });
+    this.filmeService
+      .remover(filme.id)
+      .pipe(
+        catchError(() => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro ao remover',
+            detail: `Não foi possível remover "${filme.titulo}".`
+          });
+          return of();
+        }),
+        tap(() => {
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Filme removido',
+            detail: `"${filme.titulo}" foi removido da watchlist.`
+          });
+          this.carregar();
+        })
+      )
+      .subscribe();
   }
 }

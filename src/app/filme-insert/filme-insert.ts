@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { catchError, of, tap } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import {
   form,
@@ -57,13 +58,28 @@ export class FilmeInsertComponent {
   protected salvar(): void {
     if (!this.filmeForm().valid()) return;
 
-    const novo = this.filmeService.inserir(this.filmeModel());
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Filme incluído',
-      detail: `"${novo.titulo}" foi adicionado à watchlist.`
-    });
-    this.voltarParaLista();
+    const { id, ...payload } = this.filmeModel();
+    this.filmeService
+      .inserir(payload)
+      .pipe(
+        catchError(() => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro ao incluir',
+            detail: 'Não foi possível incluir o filme no servidor.'
+          });
+          return of();
+        }),
+        tap((novo) => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Filme incluído',
+            detail: `"${novo.titulo}" foi adicionado à watchlist.`
+          });
+          this.voltarParaLista();
+        })
+      )
+      .subscribe();
   }
 
   protected voltarParaLista(): void {

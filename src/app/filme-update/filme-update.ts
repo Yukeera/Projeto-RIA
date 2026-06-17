@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { catchError, of, tap } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import {
   form,
@@ -58,13 +59,27 @@ export class FilmeUpdateComponent {
     if (!this.filmeForm().valid()) return;
 
     const alterado = { ...this.filmeModel() };
-    this.filmeService.atualizar(alterado);
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Filme alterado',
-      detail: `As alterações em "${alterado.titulo}" foram salvas.`
-    });
-    this.voltarParaLista();
+    this.filmeService
+      .atualizar(alterado)
+      .pipe(
+        catchError(() => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro ao alterar',
+            detail: 'Não foi possível salvar as alterações no servidor.'
+          });
+          return of();
+        }),
+        tap(() => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Filme alterado',
+            detail: `As alterações em "${alterado.titulo}" foram salvas.`
+          });
+          this.voltarParaLista();
+        })
+      )
+      .subscribe();
   }
 
   protected voltarParaLista(): void {

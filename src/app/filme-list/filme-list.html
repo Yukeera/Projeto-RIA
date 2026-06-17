@@ -117,8 +117,13 @@
     <tr>
       <td colspan="5">
         <div class="flex flex-col items-center gap-2 p-8 text-surface-500">
-          <i class="pi pi-inbox text-3xl opacity-60"></i>
-          <span>Nenhum filme cadastrado.</span>
+          @if (carregando()) {
+            <i class="pi pi-spin pi-spinner text-3xl opacity-60"></i>
+            <span>Carregando filmes...</span>
+          } @else {
+            <i class="pi pi-inbox text-3xl opacity-60"></i>
+            <span>Nenhum filme cadastrado.</span>
+          }
         </div>
       </td>
     </tr>
